@@ -11,9 +11,12 @@
       </div>
     </div>
     <div class="calendar__body">
-      <div class="calendar__day" v-for="d in firstDayOfMonth" :key="d">&nbsp;</div>
-      <div class="calendar__day" v-for="date in days" :key="date._id">
-        {{ date.day }}
+      <div class="calendar__day calendar__day--secondary" v-for="_ in firstDayOfMonth" :key="_">&nbsp;</div>
+      <div class="calendar__day"
+          :class="{ 'calendar__day--current': day.current }"
+          v-for="day in days" 
+          :key="day._id">
+        {{ day.day }}
       </div>
     </div>
   </div>
@@ -27,7 +30,7 @@ export default {
   props: {
     daysOfWeek: {
       type: Array,
-      default: () => ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+      default: () => ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
     },
     min: {
       type: Date,
@@ -46,29 +49,30 @@ export default {
   data () {
     return {
       months: [],
-      today: new Date(),
+      today: new Date(new Date().setHours(0,0,0,0)),
       date: new Date()
     }
   },
   computed: {
-    firstDayOfMonth () {
-      return new Date(this.year, this.month, 1)
-    },
-    lastDayOfMonth () {
-      return new Date(this.year, this.month + 1, 0)
-    },
     days () {
-      const numberOfDays = new Date(this.year, this.month + 1, 0).getDate()
+      const numberOfDays = this.lastDayOfMonth.getDate()
       const days = []
 
       for (let day = 1; day <= numberOfDays; day++) {
         days.push({
           _id: generateId(),
-          day
+          day,
+          current: this.today.getTime() === new Date(this.year, this.month, day).getTime()
         })
       }
 
       return days
+    },
+    firstDayOfMonth () {
+      return new Date(this.year, this.month, 1).getDay()
+    },
+    lastDayOfMonth () {
+      return new Date(this.year, this.month + 1, 0)
     },
     month () {
       return this.date.getMonth()
@@ -76,7 +80,11 @@ export default {
     monthName () {
       return this.months[this.date.getMonth()]
     },
-    week () {
+    nextMonthDays () {
+
+    },
+    previousMonthDays () {
+
     },
     year () {
       return this.date.getFullYear()
@@ -117,6 +125,7 @@ export default {
   &__header {
     display: flex;
     align-items: center;
+    justify-content: center;
   }
 
   &__weeks {
@@ -126,6 +135,7 @@ export default {
   &__body {
     display: flex;
     width: 100%;
+    flex-wrap: wrap;
   }
 
   &__day-of-week,
@@ -134,9 +144,22 @@ export default {
   }
 
   &__day {
-    display: flex;
-    flex: 1;
-    flex-wrap: wrap;
+    background-color: #fff;
+    height: 150px;
+    border: 1px solid #ccc;
+    transition: background-color 0.15s ease;
+
+    &--secondary {
+      background-color: #f8f8f8;
+    }
+
+    &--current {
+      background-color: cornflowerblue;
+    }
+
+    &:hover {
+      background-color: #ddd;
+    }
   }
 }
 
