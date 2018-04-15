@@ -11,12 +11,21 @@
       </div>
     </div>
     <div class="calendar__body">
-      <div class="calendar__day calendar__day--secondary" v-for="_ in firstDayOfMonth" :key="_">&nbsp;</div>
+      <div class="calendar__day calendar__day--secondary" 
+          v-for="day in previousMonthDays" 
+          :key="day._id">
+        {{ day.day }}
+      </div>
       <div class="calendar__day"
           :class="{ 'calendar__day--current': day.current }"
           v-for="day in days" 
           :key="day._id">
         {{ day.day }}
+      </div>
+      <div class="calendar__day calendar__day--secondary"
+           v-for="day in nextMonthDays"
+           :key="day._id">
+          {{ day.day }}
       </div>
     </div>
   </div>
@@ -55,18 +64,7 @@ export default {
   },
   computed: {
     days () {
-      const numberOfDays = this.lastDayOfMonth.getDate()
-      const days = []
-
-      for (let day = 1; day <= numberOfDays; day++) {
-        days.push({
-          _id: generateId(),
-          day,
-          current: this.today.getTime() === new Date(this.year, this.month, day).getTime()
-        })
-      }
-
-      return days
+      return this.getDays(this.lastDayOfMonth.getDate())
     },
     firstDayOfMonth () {
       return new Date(this.year, this.month, 1).getDay()
@@ -81,10 +79,13 @@ export default {
       return this.months[this.date.getMonth()]
     },
     nextMonthDays () {
-
+      const numberOfDays = 6 - this.lastDayOfMonth.getDay()
+      return this.getDays(numberOfDays)
     },
     previousMonthDays () {
-
+      const endOfPreviousMonth = new Date(this.year, this.month, 0).getDate()
+      const startRange = Number(endOfPreviousMonth) - Number(this.firstDayOfMonth) + 1
+      return !this.firstDayOfMonth ? 0 : this.getDays(endOfPreviousMonth, startRange)
     },
     year () {
       return this.date.getFullYear()
@@ -94,6 +95,19 @@ export default {
     this.months = getMonths(this.monthFormat)
   },
   methods: {
+    getDays (numberOfDays, startDay = 1) {
+      const days = []
+
+      for (startDay; startDay <= numberOfDays; startDay++) {
+        days.push({
+          _id: generateId(),
+          day: startDay,
+          current: this.today.getTime() === new Date(this.year, this.month, startDay).getTime()
+        })
+      }
+
+      return days
+    },
     nextMonth () {
       this.date = this.date.getMonth() === 11 
         ? new Date(this.date.getFullYear() + 1, 0, 1)
@@ -150,7 +164,7 @@ export default {
     transition: background-color 0.15s ease;
 
     &--secondary {
-      background-color: #f8f8f8;
+      background-color: #ddd;
     }
 
     &--current {
