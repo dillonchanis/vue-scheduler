@@ -109,16 +109,12 @@ export default {
       return days
     },
     nextMonth () {
-      this.date = this.date.getMonth() === 11 
-        ? new Date(this.date.getFullYear() + 1, 0, 1)
-        : new Date(this.date.getFullYear(), this.date.getMonth() + 1, 1)
+      this.date = new Date(this.date.getFullYear(), this.date.getMonth() + 1, 1)
       
       this.$emit('nextMonth', this.date)
     },
     previousMonth () {
-      this.date = this.date.getMonth() === 11 
-        ? new Date(this.date.getFullYear() - 1, 0, 1)
-        : new Date(this.date.getFullYear(), this.date.getMonth() - 1, 1)
+      this.date = new Date(this.date.getFullYear(), this.date.getMonth() - 1, 1)
       
       this.$emit('previousMonth', this.date)
     }
