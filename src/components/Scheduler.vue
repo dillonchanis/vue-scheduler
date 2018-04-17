@@ -6,33 +6,26 @@
       <button class="btn ml-4" @click="nextMonth">Next</button>
     </div>
     <div class="calendar__weeks">
-      <div v-for="day in daysOfWeek" :key="day" class="calendar__day-of-week">  
+      <div v-for="day in daysOfWeek" :key="day" class="calendar__day-of-week">
         {{ day }}
       </div>
     </div>
     <div class="calendar__body">
-      <div class="calendar__day calendar__day--secondary" 
-          v-for="day in previousMonthDays" 
-          :key="day._id">
-        {{ day.day }}
-      </div>
-      <div class="calendar__day"
-          :class="{ 'calendar__day--current': day.current }"
-          v-for="day in days" 
-          :key="day._id">
-        {{ day.day }}
-      </div>
-      <div class="calendar__day calendar__day--secondary"
-           v-for="day in nextMonthDays"
-           :key="day._id">
+      <div class="calendar__week" v-for="(week, i) in weeks" :key="i">
+        <div class="calendar__day"
+            :class="{ 'calendar__day--current': day.current, 'calendar__day--secondary': day.secondary }"
+            v-for="day in week"
+            @click="dayClicked(day)" 
+            :key="day._id">
           {{ day.day }}
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { generateId, getMonths } from '../utils'
+import { chunk, generateId, getMonths } from '../utils'
 
 export default {
   name: 'scheduler',
@@ -63,8 +56,11 @@ export default {
     }
   },
   computed: {
-    days () {
-      return this.getDays(this.lastDayOfMonth.getDate())
+    currentMonthDays () {
+      return this.getDays(this.month, 1, this.lastDayOfMonth.getDate())
+    },
+    weeks () {
+      return chunk([...this.previousMonthDays, ...this.currentMonthDays, ...this.nextMonthDays])
     },
     firstDayOfMonth () {
       return new Date(this.year, this.month, 1).getDay()
@@ -80,12 +76,14 @@ export default {
     },
     nextMonthDays () {
       const numberOfDays = 6 - this.lastDayOfMonth.getDay()
-      return this.getDays(numberOfDays)
+      const nextMonth = this.month + 1
+      return this.getDays(nextMonth, 1, numberOfDays)
     },
     previousMonthDays () {
       const endOfPreviousMonth = new Date(this.year, this.month, 0).getDate()
       const startRange = Number(endOfPreviousMonth) - Number(this.firstDayOfMonth) + 1
-      return !this.firstDayOfMonth ? 0 : this.getDays(endOfPreviousMonth, startRange)
+      const prevMonth = this.month - 1
+      return !this.firstDayOfMonth ? [] : this.getDays(prevMonth, startRange, endOfPreviousMonth)
     },
     year () {
       return this.date.getFullYear()
@@ -95,14 +93,20 @@ export default {
     this.months = getMonths(this.monthFormat)
   },
   methods: {
-    getDays (numberOfDays, startDay = 1) {
+    dayClicked (day) {
+      this.$emit('onDayClick', day)
+    },
+    getDays (month, startDay = 1, numberOfDays) {
       const days = []
 
       for (startDay; startDay <= numberOfDays; startDay++) {
+        let thisDay = new Date(this.year, month, startDay)
+        
         days.push({
           _id: generateId(),
           day: startDay,
-          current: this.today.getTime() === new Date(this.year, this.month, startDay).getTime()
+          current: this.today.getTime() === thisDay.getTime(),
+          secondary: this.date.getMonth() !== thisDay.getMonth()
         })
       }
 
@@ -138,8 +142,13 @@ export default {
     justify-content: center;
   }
 
+  &__week,
   &__weeks {
     display: flex;
+  }
+
+  &__week {
+    width: 100%;
   }
 
   &__body {
