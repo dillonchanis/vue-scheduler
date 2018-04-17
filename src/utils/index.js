@@ -6,3 +6,14 @@ export const getMonths = (format = 'long') => {
     short: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
   }[format]
 }
+
+export const chunk = (arr, size = 7) => {
+  const clone = [...arr]
+  const result = []
+
+  while (clone.length) {
+    result.push(clone.splice(0, size))
+  }
+
+  return result
+}
