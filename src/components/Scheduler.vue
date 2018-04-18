@@ -15,7 +15,7 @@
         <div class="calendar__day"
             :class="{ 'calendar__day--current': day.current, 'calendar__day--secondary': day.secondary }"
             v-for="day in week"
-            @click="dayClicked(day)" 
+            @click="() => $emit('onDayClick', day)" 
             :key="day._id">
           {{ day.day }}
         </div>
@@ -93,9 +93,6 @@ export default {
     this.months = getMonths(this.monthFormat)
   },
   methods: {
-    dayClicked (day) {
-      this.$emit('onDayClick', day)
-    },
     getDays (month, startDay = 1, numberOfDays) {
       const days = []
 
@@ -105,6 +102,9 @@ export default {
         days.push({
           _id: generateId(),
           day: startDay,
+          year: this.year,
+          month: this.month,
+          date: thisDay,
           current: this.today.getTime() === thisDay.getTime(),
           secondary: this.date.getMonth() !== thisDay.getMonth()
         })
